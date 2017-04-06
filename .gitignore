@@ -1,0 +1,79 @@
+# ===================================== #
+# .gitignore for Unity Projects (V1)
+# (tested Unity 5.3.4)
+#
+# Save this as `.gitignore` in the root directory of your project.
+# ===================================== #
+# ------------------------------------------------------------------------------
+
+# a number of files specific to your project have to be added, if they cannot be excluded in general
+# usually these files: .exe, .sln, .suo, .pdb, .csproj, .unityproj, .dll etc
+# these directories: Library, *_Data,
+# SEE BELOW for an EXAMPLE
+
+Debug
+Release
+ipch
+Win32
+
+# =============== #
+# Unity generated #
+# =============== #
+[Tt]emp/
+[Oo]bj/
+[Bb]uild
+[Ll]ibrary/ 
+sysinfo.txt
+*.stackdump
+/*.fbm
+ 
+# ===================================== #
+# Visual Studio / MonoDevelop generated #
+# ===================================== #
+[Ee]xported[Oo]bj/
+.vs/
+/*.userprefs
+#/*.csproj#
+Assembly-CSharp.csproj
+Assembly-CSharp-Editor.csproj
+Assembly-CSharp-Editor-firstpass.csproj
+Assembly-CSharp-firstpass.csproj
+Assembly-UnityScript-firstpass.unityproj
+/*.pidb
+/*.suo
+/*.sln*
+/*.user
+/*.unityproj
+/*.booproj
+ 
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store*
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+[Tt]humbs.db
+
+# ============================ #
+# EXAMPLE for specific project #
+# ============================ #
+# in this example we assume a project called "UnityTemplate".
+# all files should already be covered above, but sometimes have to be added incl path
+# you can simply edit with your project name and remove the '#'
+
+#/UnityTemplate/Library
+#/UnityTemplate/Assembly-UnityScript.unityproj
+#/UnityTemplate/Assembly-UnityScript-firstpass.unityproj
+#/UnityTemplate/Assembly-UnityScript-firstpass-vs.unityproj
+#/UnityTemplate/UnityTemplate.CSharp.Plugins.csproj
+#/UnityTemplate/UnityTemplate.sln
+#/UnityTemplate/UnityTemplate-csharp.sln
+#/UnityTemplate/UnityTemplate.CSharp.csproj
+#/UnityTemplate/UnityTemplate.CSharp.Editor.csproj
+#/UnityTemplate/UnityTemplate.CSharp.Editor.Plugins.csproj
+
+
