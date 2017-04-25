@@ -26,6 +26,7 @@ Win32
 sysinfo.txt
 *.stackdump
 /*.fbm
+*.meta
  
 # ===================================== #
 # Visual Studio / MonoDevelop generated #
