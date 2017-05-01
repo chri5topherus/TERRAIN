@@ -25,8 +25,19 @@ public class ImageProcessor: MonoBehaviour {
 	private int height = 480;
 	private int width = 640;
 
+	private bool firstTime = true;
+
+	private Mesh mesh;
+	int numPoints;
+
+	Vector3[] points;
+	Color[] pointsDepths;
+	int[] indecies;
 	Color[] colors;
-	Color[] depths;
+	Color[] colors2;
+
+
+
 
 	public Image colorIMG;
 	public Image depthIMG;
@@ -38,7 +49,15 @@ public class ImageProcessor: MonoBehaviour {
 	/// </summary>
 	void Start () {
 
-		colors = new Color[width * height];
+		numPoints = 20000;
+
+		mesh = new Mesh();
+		GetComponent<MeshFilter>().mesh = mesh;
+		points = new Vector3[numPoints];
+		pointsDepths = new Color[height*width];
+		indecies = new int[numPoints];
+		colors2 = new Color[numPoints];
+
 
 		/* Initialize a PXCMSenseManager instance */
 		psm = PXCMSenseManager.CreateInstance();
@@ -64,12 +83,64 @@ public class ImageProcessor: MonoBehaviour {
 	}
 
 
+	private void generatePointCloud(Texture2D depthTexture) {
+
+		pointsDepths = depthTexture.GetPixels ();
+		//Debug.Log (pointsDepths.ToString());
+
+		int index = 0;
+
+		for(int i = 0 ; i < height ; i=i+2)  {
+			
+			for(int j = 0 ; j < width ; j=j+2)  {
+
+				if (pointsDepths [i * width + j].r > 0.2f) {
+					//Debug.Log (pointsDepths [i * width + j].r);
+
+					if (index < numPoints) {
+						points [index] = new Vector3 (j, i, pointsDepths [i * width + j].r * 100);
+						indecies [index] = index;
+						colors2 [index] = Color.red;
+					}
+					index++;
+				}
+				//Debug.Log (pointsDepths[i*width/10 + j].r);
+				//
+			}
+		}
+
+		Debug.Log (index);
+
+		//clean rest of vertices
+		for (int i = index; i < numPoints; i++) {
+			indecies [i] = 0;
+		}
+
+		mesh.vertices = points;
+		mesh.colors = colors2;
+		mesh.SetIndices(indecies, MeshTopology.Points,0);
+
+
+
+
+
+
+	}
 
 	/// <summary>
 	/// Update is called every frame, if the MonoBehaviour is enabled.
 	/// </summary>
 	void Update()
 	{
+
+
+
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			firstTime = true;
+			Debug.Log ("button pressed");
+
+		}
+
 
 		/* Make sure PXCMSenseManager Instance is Initialized */
 		if (psm == null) return;
@@ -94,6 +165,16 @@ public class ImageProcessor: MonoBehaviour {
 
 					/* Associate the Texture2D with a gameObject */
 					depthIMG.sprite = Sprite.Create (depthTexture2D, new Rect(0,0,width,height), new Vector2(0,0)); 
+
+
+
+
+
+				}
+
+				if(firstTime){
+					generatePointCloud (depthTexture2D);
+					//firstTime = false;
 				}
 
 				/* Retrieve the image data in Texture2D */
@@ -120,7 +201,6 @@ public class ImageProcessor: MonoBehaviour {
 					//colorPlane.GetComponent<Renderer>().material.mainTexture = colorTexture2D;
 					colorIMG.sprite = Sprite.Create (colorTexture2D, new Rect(0,0,width,height), new Vector2(0,0)); 
 
-
 					//colorPlane.renderer.material.mainTextureScale = new Vector2(-1f, 1f);
 
 					//testIMG.sprite = Sprite.Create (colorTexture2D, new Rect(0,0,200,400), new Vector2 (0, 0));
@@ -131,7 +211,7 @@ public class ImageProcessor: MonoBehaviour {
 
 
 
-				/* Retrieve the image data in Texture2D */
+				// Retrieve the image data in Texture2D
 				PXCMImage.ImageData colorImageData;
 				colorImage.AcquireAccess(PXCMImage.Access.ACCESS_READ, PXCMImage.PixelFormat.PIXEL_FORMAT_RGB32, out colorImageData);
 				colorImageData.ToTexture2D(0, colorTexture2D);
@@ -182,9 +262,6 @@ public class ImageProcessor: MonoBehaviour {
 
 					}
 
-					Color.
-
-
 
 					if (colors [i].g * tresh < colors [i].r && colors [i].b * tresh < colors [i].r)
 						colors [i] = Color.cyan;
@@ -196,13 +273,13 @@ public class ImageProcessor: MonoBehaviour {
 
 				colorTexture2D.SetPixels (colors);
 
-				/*
-				for (int i = 0; i < colorTexture2D.height; i++) {
-					for (int j = 0; j < colorTexture2D.width; j++) {
-						colorTexture2D.SetPixel (j, i, Color.cyan);
-					}
-				}
-*/
+
+				//for (int i = 0; i < colorTexture2D.height; i++) {
+				//	for (int j = 0; j < colorTexture2D.width; j++) {
+				//		colorTexture2D.SetPixel (j, i, Color.cyan);
+				//	}
+				//}
+
 				colorImage.ReleaseAccess(colorImageData);
 
 				/* Apply the texture to the GameObject to display on */
