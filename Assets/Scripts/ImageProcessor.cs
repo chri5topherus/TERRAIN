@@ -1,22 +1,16 @@
-﻿/*******************************************************************************
-
-INTEL CORPORATION PROPRIETARY INFORMATION
-This software is supplied under the terms of a license agreement or nondisclosure
-agreement with Intel Corporation and may not be copied or disclosed except in
-accordance with the terms of that agreement
-Copyright(c) 2014 Intel Corporation. All Rights Reserved.
-
-*******************************************************************************/
-
-using UnityEngine.UI;
+﻿using UnityEngine.UI;
 using UnityEngine;
 using System.Collections;
+using Intel.RealSense;
 
 public class ImageProcessor: MonoBehaviour {
 
+	public GameObject _pointCloud;
+	private Projection projection;
 	private Texture2D colorTexture2D; //Color Texture
+	public Texture colorTexture;
 	private Texture2D depthTexture2D;
-	private PXCMImage colorImage = null;//PXCMImage for color 
+	private PXCMImage colorImage = null; //PXCMImage for color 
 	private PXCMImage depthImage = null;
 
 	private PXCMSenseManager psm; //SenseManager Instance
@@ -25,41 +19,42 @@ public class ImageProcessor: MonoBehaviour {
 	private int height = 480;
 	private int width = 640;
 
-	private bool firstTime = true;
+	//private bool firstTime = true;
 
+
+	//POINT CLOUD MESH ATTRIBUTES
 	private Mesh mesh;
-	int numPoints;
-
+	int numPoints = 20000;
 	Vector3[] points;
 	Color[] pointsDepths;
+	Color[] pointsColors;
 	int[] indecies;
 	Color[] colors;
 	Color[] colors2;
 
 
+	public UnityEngine.UI.Image colorIMG;
+	public UnityEngine.UI.Image depthIMG;
 
 
-	public Image colorIMG;
-	public Image depthIMG;
+	//Device device {
+	//	get;
+	//}
 
-	/// <summary>
-	/// Use this for initialization
-	/// Unity function called on the frame when a script is enabled 
-	/// just before any of the Update methods is called the first time.
-	/// </summary>
 	void Start () {
 
-		numPoints = 20000;
+		//projection = device.CreateProjection ();
 
 		mesh = new Mesh();
-		GetComponent<MeshFilter>().mesh = mesh;
+		_pointCloud.GetComponent<MeshFilter>().mesh = mesh;
 		points = new Vector3[numPoints];
 		pointsDepths = new Color[height*width];
+		pointsColors = new Color[height*width];
 		indecies = new int[numPoints];
 		colors2 = new Color[numPoints];
 
 
-		/* Initialize a PXCMSenseManager instance */
+		// Initialize a PXCMSenseManager instance
 		psm = PXCMSenseManager.CreateInstance();
 		if (psm == null)
 		{
@@ -67,11 +62,13 @@ public class ImageProcessor: MonoBehaviour {
 			return;
 		}
 
-		/* Enable the color stream of size 640x480 */
+
+		// Enable the color stream of size 640x480
 		psm.EnableStream(PXCMCapture.StreamType.STREAM_TYPE_COLOR, width, height);
 		psm.EnableStream(PXCMCapture.StreamType.STREAM_TYPE_DEPTH, width, height);
 
-		/* Initialize the execution pipeline */
+
+		// Initialize the execution pipeline
 		sts = psm.Init();
 		if (sts != pxcmStatus.PXCM_STATUS_NO_ERROR)
 		{
@@ -79,15 +76,13 @@ public class ImageProcessor: MonoBehaviour {
 			OnDisable();
 			return;
 		}
-
 	}
 
 
-	private void generatePointCloud(Texture2D depthTexture) {
+	private void generatePointCloud(Texture2D depthTexture, Texture2D colorTexture) {
 
 		pointsDepths = depthTexture.GetPixels ();
-		//Debug.Log (pointsDepths.ToString());
-
+		pointsColors = colorTexture.GetPixels ();
 		int index = 0;
 
 		for(int i = 0 ; i < height ; i=i+2)  {
@@ -100,18 +95,16 @@ public class ImageProcessor: MonoBehaviour {
 					if (index < numPoints) {
 						points [index] = new Vector3 (j, i, pointsDepths [i * width + j].r * 100);
 						indecies [index] = index;
-						colors2 [index] = Color.red;
+						colors2 [index] = pointsColors [i * width + j];
 					}
 					index++;
 				}
-				//Debug.Log (pointsDepths[i*width/10 + j].r);
-				//
 			}
 		}
 
 		Debug.Log (index);
 
-		//clean rest of vertices
+		// clean up rest of vertices
 		for (int i = index; i < numPoints; i++) {
 			indecies [i] = 0;
 		}
@@ -120,25 +113,16 @@ public class ImageProcessor: MonoBehaviour {
 		mesh.colors = colors2;
 		mesh.SetIndices(indecies, MeshTopology.Points,0);
 
-
-
-
-
-
 	}
 
-	/// <summary>
-	/// Update is called every frame, if the MonoBehaviour is enabled.
-	/// </summary>
+
 	void Update()
 	{
 
 
 
 		if (Input.GetKeyDown (KeyCode.Space)) {
-			firstTime = true;
 			Debug.Log ("button pressed");
-
 		}
 
 
@@ -172,10 +156,6 @@ public class ImageProcessor: MonoBehaviour {
 
 				}
 
-				if(firstTime){
-					generatePointCloud (depthTexture2D);
-					//firstTime = false;
-				}
 
 				/* Retrieve the image data in Texture2D */
 				PXCMImage.ImageData depthImageData;
@@ -199,6 +179,9 @@ public class ImageProcessor: MonoBehaviour {
 
 					/* Associate the Texture2D with a gameObject */
 					//colorPlane.GetComponent<Renderer>().material.mainTexture = colorTexture2D;
+
+
+
 					colorIMG.sprite = Sprite.Create (colorTexture2D, new Rect(0,0,width,height), new Vector2(0,0)); 
 
 					//colorPlane.renderer.material.mainTextureScale = new Vector2(-1f, 1f);
@@ -209,6 +192,14 @@ public class ImageProcessor: MonoBehaviour {
 
 
 
+
+
+				//Intel.RealSense.Image img2 = new Intel.RealSense.Image (colorImage.instance, false);
+				//Intel.RealSense.Image img3 = new Intel.RealSense.Image (depthImage.instance, false);
+		
+				//Intel.RealSense.Image test = projection.CreateColorImageMappedToDepth(img2, img3);
+
+				generatePointCloud (depthTexture2D, colorTexture2D);
 
 
 				// Retrieve the image data in Texture2D
@@ -222,7 +213,9 @@ public class ImageProcessor: MonoBehaviour {
 				//red value has to be bigger then two times g and b value 
 				//fade out corner
 
-		
+				colorTexture = colorTexture2D;
+
+
 				colors = colorTexture2D.GetPixels ();
 				float treshMin = 1.5F;
 				float treshMax = 2.5F;
