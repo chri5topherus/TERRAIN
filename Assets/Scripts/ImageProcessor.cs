@@ -12,6 +12,8 @@ public class ImageProcessor: MonoBehaviour {
 	private Texture2D depthTexture2D;
 	private PXCMImage colorImage = null; //PXCMImage for color 
 	private PXCMImage depthImage = null;
+	private bool smooth = false;
+
 
 	private PXCMSenseManager psm; //SenseManager Instance
 	private pxcmStatus sts; //Check error status
@@ -23,9 +25,11 @@ public class ImageProcessor: MonoBehaviour {
 
 
 	//POINT CLOUD MESH ATTRIBUTES
+	public float dampValue;
 	private Mesh mesh;
 	int numPoints = 20000;
 	Vector3[] points;
+	float[] allZPositions;
 	Color[] pointsDepths;
 	Color[] pointsColors;
 	int[] indecies;
@@ -48,11 +52,11 @@ public class ImageProcessor: MonoBehaviour {
 		mesh = new Mesh();
 		_pointCloud.GetComponent<MeshFilter>().mesh = mesh;
 		points = new Vector3[numPoints];
+		allZPositions = new float[height*width];
 		pointsDepths = new Color[height*width];
 		pointsColors = new Color[height*width];
 		indecies = new int[numPoints];
 		colors2 = new Color[numPoints];
-
 
 		// Initialize a PXCMSenseManager instance
 		psm = PXCMSenseManager.CreateInstance();
@@ -63,12 +67,12 @@ public class ImageProcessor: MonoBehaviour {
 		}
 
 
-		// Enable the color stream of size 640x480
+		//enable the color stream of size 640x480
 		psm.EnableStream(PXCMCapture.StreamType.STREAM_TYPE_COLOR, width, height);
 		psm.EnableStream(PXCMCapture.StreamType.STREAM_TYPE_DEPTH, width, height);
 
 
-		// Initialize the execution pipeline
+		//initialize the execution pipeline
 		sts = psm.Init();
 		if (sts != pxcmStatus.PXCM_STATUS_NO_ERROR)
 		{
@@ -78,22 +82,40 @@ public class ImageProcessor: MonoBehaviour {
 		}
 	}
 
-
+	//called every frame
 	private void generatePointCloud(Texture2D depthTexture, Texture2D colorTexture) {
+
+		float newZ;
+
+		//pointsLastFrame = points;
 
 		pointsDepths = depthTexture.GetPixels ();
 		pointsColors = colorTexture.GetPixels ();
 		int index = 0;
 
+		//track every second pixel
 		for(int i = 0 ; i < height ; i=i+2)  {
 			
 			for(int j = 0 ; j < width ; j=j+2)  {
 
+				//ignore rest of the depth image
 				if (pointsDepths [i * width + j].r > 0.2f) {
 					//Debug.Log (pointsDepths [i * width + j].r);
 
 					if (index < numPoints) {
-						points [index] = new Vector3 (j, i, pointsDepths [i * width + j].r * 100);
+						newZ = pointsDepths [i * width + j].r * 100;		
+						if (smooth) {
+							if (allZPositions [i * width + j] > newZ) {
+								if (allZPositions [i * width + j] - newZ < 10f)
+									newZ = newZ + (allZPositions [i * width + j] - newZ) / dampValue * (dampValue - 1);
+							} else {
+								if(newZ - allZPositions [i * width + j] < 10f) 
+									newZ = newZ - (newZ - allZPositions [i * width + j]) / dampValue * (dampValue - 1);
+							}
+							allZPositions [i * width + j] = newZ;
+						}
+
+						points [index] = new Vector3 (j, i, newZ );
 						indecies [index] = index;
 						colors2 [index] = pointsColors [i * width + j];
 					}
@@ -104,11 +126,12 @@ public class ImageProcessor: MonoBehaviour {
 
 		Debug.Log (index);
 
-		// clean up rest of vertices
+		//clean up rest of vertices
 		for (int i = index; i < numPoints; i++) {
 			indecies [i] = 0;
 		}
 
+		//set values on mesh 
 		mesh.vertices = points;
 		mesh.colors = colors2;
 		mesh.SetIndices(indecies, MeshTopology.Points,0);
@@ -122,7 +145,8 @@ public class ImageProcessor: MonoBehaviour {
 
 
 		if (Input.GetKeyDown (KeyCode.Space)) {
-			Debug.Log ("button pressed");
+			Debug.Log ("button pressed: smooth: " + smooth);
+			smooth = !smooth;
 		}
 
 
