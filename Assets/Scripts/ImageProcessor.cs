@@ -6,14 +6,13 @@ using Intel.RealSense;
 public class ImageProcessor: MonoBehaviour {
 
 	public GameObject _pointCloud;
-	private Projection projection;
+	private PXCMProjection projection;
 	private Texture2D colorTexture2D; //Color Texture
 	public Texture colorTexture;
 	private Texture2D depthTexture2D;
 	private PXCMImage colorImage = null; //PXCMImage for color 
 	private PXCMImage depthImage = null;
 	private bool smooth = false;
-
 
 	private PXCMSenseManager psm; //SenseManager Instance
 	private pxcmStatus sts; //Check error status
@@ -58,6 +57,9 @@ public class ImageProcessor: MonoBehaviour {
 		indecies = new int[numPoints];
 		colors2 = new Color[numPoints];
 
+
+
+
 		// Initialize a PXCMSenseManager instance
 		psm = PXCMSenseManager.CreateInstance();
 		if (psm == null)
@@ -80,6 +82,10 @@ public class ImageProcessor: MonoBehaviour {
 			OnDisable();
 			return;
 		}
+
+		PXCMCapture.Device device = psm.captureManager.device;
+		projection = device.CreateProjection ();
+
 	}
 
 	//called every frame
@@ -214,15 +220,13 @@ public class ImageProcessor: MonoBehaviour {
 				}
 
 
-
-
-
-
 				//Intel.RealSense.Image img2 = new Intel.RealSense.Image (colorImage.instance, false);
 				//Intel.RealSense.Image img3 = new Intel.RealSense.Image (depthImage.instance, false);
 		
-				//Intel.RealSense.Image test = projection.CreateColorImageMappedToDepth(img2, img3);
+				//COLOR MAP
+				//colorImage = projection.CreateColorImageMappedToDepth(depthImage, colorImage);
 
+				//POINTCLOUD
 				generatePointCloud (depthTexture2D, colorTexture2D);
 
 
@@ -239,6 +243,7 @@ public class ImageProcessor: MonoBehaviour {
 
 				colorTexture = colorTexture2D;
 
+				//set colors
 
 				colors = colorTexture2D.GetPixels ();
 				float treshMin = 1.5F;
@@ -246,7 +251,7 @@ public class ImageProcessor: MonoBehaviour {
 
 				float colorDif01;
 				float colorDif02;
-
+				/*
 				for (int i = 0; i < colors.Length; i++) {
 
 					colorDif01 = colors [i].g / colors [i].r;
@@ -257,11 +262,21 @@ public class ImageProcessor: MonoBehaviour {
 					if (colorDif01 > treshMin)
 						colors [i] = new Color(colors [i].r, colors [i].g, colors [i].b, remapNumber(treshMax,treshMin,colorDif01));
 
+*/
+
+
+
+
+
 					/*
 					if (colorDif01 > tresh) {
 						colors [i] = Color.cyan;
 					}
 */
+
+
+
+
 
 
 					/*
@@ -284,9 +299,13 @@ public class ImageProcessor: MonoBehaviour {
 						colors [i] = Color.cyan;
 					else if ((colors [i].g * 1.5F < colors [i].r && colors [i].b * 1.5F < colors [i].r))
 						colors [i] = Color.green;
+				
+				*/
 
-					*/
-				}
+
+
+
+				//}
 
 				colorTexture2D.SetPixels (colors);
 
