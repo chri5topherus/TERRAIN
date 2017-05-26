@@ -130,6 +130,7 @@ public class ImageProcessor: MonoBehaviour {
 			}
 		}
 
+		//OUTPUT number of drawn points
 		Debug.Log (index);
 
 		//clean up rest of vertices
@@ -141,7 +142,6 @@ public class ImageProcessor: MonoBehaviour {
 		mesh.vertices = points;
 		mesh.colors = colors2;
 		mesh.SetIndices(indecies, MeshTopology.Points,0);
-
 	}
 
 
@@ -156,10 +156,10 @@ public class ImageProcessor: MonoBehaviour {
 		}
 
 
-		/* Make sure PXCMSenseManager Instance is Initialized */
+		//Make sure PXCMSenseManager Instance is Initialized
 		if (psm == null) return;
 
-		/* Wait until any frame data is available true(aligned) false(unaligned) */
+		//Wait until any frame data is available true(aligned) false(unaligned)
 		if (psm.AcquireFrame(true) != pxcmStatus.PXCM_STATUS_NO_ERROR) 
 			return;
 
@@ -187,16 +187,16 @@ public class ImageProcessor: MonoBehaviour {
 				}
 
 
-				/* Retrieve the image data in Texture2D */
+				//Retrieve the image data in Texture2D
 				PXCMImage.ImageData depthImageData;
 				depthImage.AcquireAccess(PXCMImage.Access.ACCESS_READ, PXCMImage.PixelFormat.PIXEL_FORMAT_RGB32, out depthImageData);
 				depthImageData.ToTexture2D(0, depthTexture2D); // converts RSSDK image data to Unity Texture2D
 
 				depthImage.ReleaseAccess(depthImageData);
 
-				/* Apply the texture to the GameObject to display on */
 				depthTexture2D.Apply();
-			}
+
+			} //end of depth 
 
 
 			colorImage = sample.color;
@@ -321,12 +321,14 @@ public class ImageProcessor: MonoBehaviour {
 				/* Apply the texture to the GameObject to display on */
 				colorTexture2D.Apply();
 			}
-		}
+		} //end of color 
 
 		/* Realease the frame to process the next frame */
 		psm.ReleaseFrame();
 
 	}
+
+
 
 	/// <summary>
 	/// Unity function that is called when the behaviour becomes disabled () or inactive.
