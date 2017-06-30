@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) 2011 Reijer Hooijkaas.
+ * All rights reserved.
+ *
+ * Contact: reijerh AT gmail.com
+ * 
+ * TERRAIN STITCHER v1.1
+ *
+ * TerrainStitcher is free for private, non-commercial use only, please
+ * refer to License.txt for conditions that apply to commercial use.
+ */
+
+TerrainStitcher Changelog
+
+1.1 (08-18-2011)
+----------------
+- Drastically improved speed when stitching a lot of terrains by implementing memoization
+- "Terrain Stitcher" menu item changed to "Terrain Stitcher..."
+- Minor changes to accompanying text files
+
+1.0 (08-17-2011)
+----------------
+- Initial version

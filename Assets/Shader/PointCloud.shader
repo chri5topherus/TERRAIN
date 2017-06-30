@@ -55,7 +55,7 @@
 			{
 				FS_INPUT pIn = (FS_INPUT)0;
 				pIn.normal = mul(unity_ObjectToWorld, tri[0].normal);
-				pIn.color = tri[0].color;
+				//pIn.color = tri[0].color;
 
 				float4 vertex = mul(unity_ObjectToWorld, tri[0].vertex);
 				float3 tangent = normalize(cross(float3(0,1,0), pIn.normal));
